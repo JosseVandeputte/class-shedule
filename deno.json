@@ -35,7 +35,7 @@
     "exclude": ["old/"]
   },
   "tasks": {
-    "run": "deno run --allow-net --allow-read --allow-write --allow-sys --watch src/Main/Main.ts ",
+    "run": "deno run --allow-net --allow-read --allow-write --allow-sys --watch src/Main.ts ",
     "test": "deno test -A --coverage; deno coverage --exclude=tests; deno coverage --exclude=tests --html",
     "qa": "deno upgrade; rm -rf coverage; deno check src/ && deno fmt && deno lint && deno task  test",
     "qanc": "deno upgrade; rm -rf coverage; deno fmt && deno lint && deno task  test"

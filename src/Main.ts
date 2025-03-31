@@ -9,7 +9,7 @@ const url1week: string = "https://cloud.timeedit.net/howest/web/student/ri65110t
 
 console.log("Starting server...");
 
-const router = new Router({prefix: "/api"});
+const router = new Router();
 const app = new Application();
 
 router.get('/', (context) => {
@@ -77,5 +77,5 @@ app.use((context) => {
     context.response.body = { error: "Not Found" };
 });
 
-console.log("Server running on http://localhost:8000/api");
+console.log("Server running on http://localhost:8000");
 await app.listen({ port: 8000 });

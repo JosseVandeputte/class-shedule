@@ -112,6 +112,30 @@ router.get("/courses", async (context) => {
     context.response.body = courses;
 });
 
+router.get("/courses/:course", async (context) => {
+    const course : string = context.params.course;
+    if (course) {
+        const classesOfCourse = [];
+        const calendar = await fetchCalendar(url12week);
+        for (const classData of calendar) {
+            if(classData.COURSE === course) {
+                classesOfCourse.push(classData);
+            }
+        }
+        
+        if (classesOfCourse.length > 0) {
+            context.response.status = 200;
+            context.response.body = classesOfCourse;
+        } else {
+            context.response.status = 404;
+            context.response.body = { error: "No classes found for this course" };
+        }
+    } else {
+        context.response.status = 400;
+        context.response.body = { error: "Invalid course name" };
+    }
+});
+
 app.use(oakCors());
 app.use(router.routes());
 app.use(router.allowedMethods());

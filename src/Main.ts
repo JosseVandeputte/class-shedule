@@ -49,7 +49,6 @@ router.get("/calendar/:uid", async (context) => {
             }
         }
 
-        console.log("Class not found");
         context.response.status = 404;
         context.response.body = { error: "Class not found" };
 
@@ -60,8 +59,30 @@ router.get("/calendar/:uid", async (context) => {
 });
 
 // return a list of all classes of specific day
-router.get("/calendar/day/:day", () => {
-    throw new Error("Not Implemented");
+router.get("/calendar/day/:day", async (context) => {
+    const day : string = context.params.day;
+    console.log(day);
+    
+    if (day) {
+        const classesOfDay = [];
+        const calendar = await fetchCalendar(url12week);
+        for (const classData of calendar) {
+            if(classData.STARTDATE === day) {
+                classesOfDay.push(classData);
+            }
+        }
+        
+        if (classesOfDay.length > 0) {
+            context.response.status = 200;
+            context.response.body = classesOfDay;
+        } else {
+            context.response.status = 404;
+            context.response.body = { error: "No classes found for this day" };
+        }
+    } else {
+        context.response.status = 400;
+        context.response.body = { error: "Invalid class Date" };
+    }
 });
 // return a list of all courses
 router.get("/courses", () => {

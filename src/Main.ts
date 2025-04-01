@@ -3,28 +3,10 @@ import { oakCors } from "https://deno.land/x/cors@v1.2.2/mod.ts";
 import { fetchCalendar } from 'Schedule/connection.ts';
 
 const url12week: string = "https://cloud.timeedit.net/howest/web/student/ri65016QQf7Z59Q9fw4ounQ25t7Z0Z6u7YoycZvQQY7ZdYZX21jQ53C2Q22827t4m280k4725ojB10mj80767l63mo3k9AEC9Z7E0EA0493AC.ics";
-
 const url1week: string = "https://cloud.timeedit.net/howest/web/student/ri65110tQv7ZQQQ9Y940QZm25o77wZd02uouZXZQfY7njY5y79k6j6Bl85Q0m2B61j92349842oC207ZF022Ft599kAm24D06D5A07E.ics";
-
-
-console.log("Starting server...");
 
 const router = new Router();
 const app = new Application();
-
-router.get('/', (context) => {
-    context.response.body = {
-        message: "Welcome to the Class Schedule API",
-        endpoints: [
-            { method: "GET", path: "/calendar", description: "Get all classes for 1 week" },
-            { method: "GET", path: "/calendar/12weeks", description: "Get all classes for 12 weeks" },
-            { method: "GET", path: "/calendar/:uid", description: "Get a specific class by UID" },
-            { method: "GET", path: "/calendar/day/:day", description: "Get all classes for a specific day" },
-            { method: "GET", path: "/courses", description: "Get all courses" },   
-                     
-        ],
-    };
-});
 
 router.get("/calendar", async (context) => {
     const calendar = await fetchCalendar(url1week);
@@ -136,7 +118,112 @@ router.get("/courses/:course", async (context) => {
     }
 });
 
-app.use(oakCors());
+
+router.get("/openapi.yaml", (ctx) => {
+    ctx.response.type = "text/yaml";
+    ctx.response.body = `
+openapi: 3.1.0
+info:
+  title: Class Schedule API
+  version: 1.0.0
+  description: API for fetching class schedules
+paths:
+  /calendar:
+    get:
+      summary: Get weekly schedule
+      responses:
+        200:
+          description: Success
+  /calendar/12weeks:
+    get:
+      summary: Get 12-week schedule
+      responses:
+        200:
+          description: Success
+  /calendar/{uid}:
+    get:
+      summary: Get class by UID
+      parameters:
+        - name: uid
+          in: path
+          required: true
+          description: UID of the class
+          schema:
+            type: string
+      responses:
+        200:
+          description: Success
+        404:
+          description: Class not found
+  /calendar/day/{day}:
+    get:
+      summary: Get classes for a specific day
+      parameters:
+        - name: day
+          in: path
+          required: true
+          description: Day to fetch classes for
+          schema:
+            type: string
+      responses:
+        200:
+          description: Success
+        404:
+          description: No classes found for this day
+  /courses:
+    get:
+      summary: Get all courses
+      responses:
+        200:
+          description: Success
+        404:
+          description: No courses found
+  /courses/{course}:
+    get:
+      summary: Get classes for a specific course
+      parameters:
+        - name: course
+          in: path
+          required: true
+          description: Course to fetch classes for
+          schema:
+            type: string
+      responses:
+        200:
+          description: Success
+        404:
+          description: No classes found for this course
+    `;
+});
+
+router.get("/", (ctx) => {
+    ctx.response.type = "text/html";
+    ctx.response.body = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+            <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swagger-ui-dist/swagger-ui.css">
+        </head>
+        <body>
+          <div id="swagger-ui"></div>
+            <script src="https://cdn.jsdelivr.net/npm/swagger-ui-dist/swagger-ui-bundle.js"></script>
+          <script>
+            SwaggerUIBundle({
+              url: '/openapi.yaml',
+              dom_id: '#swagger-ui'
+            });
+          </script>
+        </body>
+      </html>
+    `;
+  });
+  
+
+app.use(oakCors({
+    origin: "*",
+    methods: ["GET"]
+}));
+
 app.use(router.routes());
 app.use(router.allowedMethods());
 

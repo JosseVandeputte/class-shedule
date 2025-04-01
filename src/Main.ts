@@ -20,7 +20,8 @@ router.get('/', (context) => {
             { method: "GET", path: "/calendar/12weeks", description: "Get all classes for 12 weeks" },
             { method: "GET", path: "/calendar/:uid", description: "Get a specific class by UID" },
             { method: "GET", path: "/calendar/day/:day", description: "Get all classes for a specific day" },
-            { method: "GET", path: "/courses", description: "Get all courses" },            
+            { method: "GET", path: "/courses", description: "Get all courses" },   
+                     
         ],
     };
 });
@@ -58,7 +59,6 @@ router.get("/calendar/:uid", async (context) => {
     }
 });
 
-// return a list of all classes of specific day
 router.get("/calendar/day/:day", async (context) => {
     const day : string = context.params.day;
     console.log(day);
@@ -84,9 +84,32 @@ router.get("/calendar/day/:day", async (context) => {
         context.response.body = { error: "Invalid class Date" };
     }
 });
-// return a list of all courses
-router.get("/courses", () => {
-    throw new Error("Not Implemented");
+
+router.get("/courses", async (context) => {
+    const courses: string[] = [];
+    const calendar = await fetchCalendar(url12week);
+    for (const classData of calendar) {
+        if (!courses.includes(classData.COURSE)) {
+            courses.push(classData.COURSE);
+        }
+    }
+    for (let i = 0; i < courses.length; i++) {
+        if (courses[i]?.startsWith("Lesonderwerp") 
+                || courses[i]?.startsWith("Andere")
+                || courses[i]?.startsWith("Opleidingsraad")
+        ){
+            courses.splice(i, 1);
+            i--;
+        }
+    }
+    if(courses.length === 0) {
+        context.response.status = 404;
+        context.response.body = { error: "No courses found" };
+        return;
+    }
+
+    context.response.status = 200;
+    context.response.body = courses;
 });
 
 app.use(oakCors());
